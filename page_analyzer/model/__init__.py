@@ -1,1 +1,1 @@
-from .repository import UrlRepository  as UrlRepository
+from .repository import UrlRepository as UrlRepository

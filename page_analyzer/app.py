@@ -1,11 +1,19 @@
-import psycopg2
 import os
 
-
-from flask import Flask, render_template, url_for, request, flash, redirect, abort
+import psycopg2
 from dotenv import load_dotenv
-from .model import UrlRepository
+from flask import (
+    Flask,
+    abort,
+    flash,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 from validators import url as validate
+
+from .model import UrlRepository
 
 load_dotenv()
 
@@ -25,10 +33,12 @@ repo = UrlRepository(conn)
 def index():
     return render_template("index.html", url="", errors="1")
 
+
 @app.route("/urls")
 def show():
     urls = repo.get_content()
     return render_template("show.html", urls=urls)
+
 
 @app.post("/urls")
 def add_site():
@@ -41,6 +51,7 @@ def add_site():
     flash("Url was added succesfully", "success")
     return redirect(url_for("url_show", id=url["id"]))
 
+
 @app.route("/urls/<int:id>")
 def url_show(id):
     url = repo.find(id)
@@ -48,6 +59,7 @@ def url_show(id):
         abort(404)
     checks = repo.get_check_content(url)
     return render_template("show_id.html", url=url, checks=checks)
+
 
 @app.post("/urls/<int:id>/checks")
 def url_check(id):

@@ -12,7 +12,10 @@ class UrlRepository:
     
     def get_content(self):
         with self.conn.cursor(cursor_factory=DictCursor) as cur:
-            cur.execute("SELECT MAX(ch.created_at) as last_date, urls.name, urls.id FROM urls LEFT JOIN url_checks as ch ON ch.url_id = urls.id GROUP BY urls.id, urls.name ORDER BY id")
+            sql = "SELECT MAX(ch.created_at) as last_date, urls.name, urls.id" \
+            " FROM urls LEFT JOIN url_checks as ch " \
+            "ON ch.url_id = urls.id GROUP BY urls.id, urls.name ORDER BY id"
+            cur.execute(sql)
             return [dict(row) for row in cur]
     
     def find(self, id):
@@ -23,7 +26,7 @@ class UrlRepository:
     
     def get_by_term(self, search_term=""):
         with self.conn.cursor(cursor_factory=DictCursor) as cur:
-            cur.execute("SELECT * FROM urls " \
+            cur.execute("SELECT * FROM urls "
             "WHERE url ILIKE %s", (f"%{search_term}%",))
             return cur.fetchall()
     
@@ -36,17 +39,20 @@ class UrlRepository:
     def _create(self, url):
         
         with self.conn.cursor() as cur:
-            cur.execute("INSERT INTO urls (name) VALUES (%s) RETURNING id", (url["name"],))
+            cur.execute("INSERT INTO urls (name) VALUES (%s) RETURNING id",
+                         (url["name"],))
             id = cur.fetchone()[0]
             url["id"] = id
         self.conn.commit()
 
     def get_check_content(self, url):
         with self.conn.cursor(cursor_factory=DictCursor) as cur:
-            cur.execute("SELECT * FROM url_checks WHERE url_id=%s", (url["id"],))
+            cur.execute("SELECT * FROM url_checks WHERE url_id=%s", 
+                        (url["id"],))
             return [dict(row) for row in cur]
     
     def check(self, url):
         with self.conn.cursor() as cur:
-            cur.execute("INSERT INTO url_checks (url_id) VALUES (%s)", (str(url["id"])))
+            cur.execute("INSERT INTO url_checks (url_id) VALUES (%s)", 
+                        (str(url["id"])))
         self.conn.commit()
