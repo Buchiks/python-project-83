@@ -46,5 +46,12 @@ def url_show(id):
     url = repo.find(id)
     if not url:
         abort(404)
-    return render_template("show_id.html", url=url)
+    checks = repo.get_check_content(url)
+    return render_template("show_id.html", url=url, checks=checks)
+
+@app.post("/urls/<int:id>/checks")
+def url_check(id):
+    url = repo.find(id)
+    repo.check(url)
+    return redirect(url_for("url_show", id=url["id"]))
     

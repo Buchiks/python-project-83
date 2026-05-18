@@ -44,7 +44,9 @@
     </div>
     <div class="p-3 ms-5">
         <h1>Проверки</h1>
-        <button type="submit" class="btn btn-primary mb-3">Запустить проверку</button>
+        <form action="{{ url_for('url_check', id=url.id) }}" method="post" class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary mb-3">Запустить проверку</button>
+        </form>
         <table class="table table-bordered w-75 ">
             <thead>
                 <tr>
@@ -56,6 +58,18 @@
                     <td class="col-3">Дата создания</td>
                 </tr>
             </thead>
+            <tbody>
+                {% for check in checks %}
+                <tr>
+                    <td class="col-1">{{ check.id }}</td>
+                    <td class="col-3"></a></td>
+                    <td class="col-1"></td>
+                    <td class="col-1"></td>
+                    <td class="col-3"></td>
+                    <td class="col-3">{{ check.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
     </div>
 </body>
 

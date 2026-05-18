@@ -12,12 +12,12 @@ class UrlRepository:
     
     def get_content(self):
         with self.conn.cursor(cursor_factory=DictCursor) as cur:
-            cur.execute("SELECT * from urls")
+            cur.execute("SELECT * FROM urls")
             return [dict(row) for row in cur]
     
     def find(self, id):
         with self.conn.cursor(cursor_factory=DictCursor) as cur:
-            cur.execute("SELECT * from urls WHERE id=%s", (id,))
+            cur.execute("SELECT * FROM urls WHERE id=%s", (id,))
             row = cur.fetchone()
             return dict(row) if row else None
     
@@ -39,4 +39,14 @@ class UrlRepository:
             cur.execute("INSERT INTO urls (name) VALUES (%s) RETURNING id", (url["name"],))
             id = cur.fetchone()[0]
             url["id"] = id
+        self.conn.commit()
+
+    def get_check_content(self, url):
+        with self.conn.cursor(cursor_factory=DictCursor) as cur:
+            cur.execute("SELECT * FROM url_checks WHERE url_id=%s", (url["id"],))
+            return [dict(row) for row in cur]
+    
+    def check(self, url):
+        with self.conn.cursor() as cur:
+            cur.execute("INSERT INTO url_checks (url_id) VALUES (%s)", (str(url["id"])))
         self.conn.commit()
