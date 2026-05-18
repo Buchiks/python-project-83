@@ -41,7 +41,12 @@
                 <tr>
                     <td class="col-1">{{ url.id }}</td>
                     <td class="col-4"><a href="{{ url_for('url_show', id=url.id) }}">{{ url.name }}</a></td>
-                    <td class="col-4"></td>
+
+                    <td class="col-4">
+                        {% if url.last_date %}
+                        {{ url.last_date }}
+                        {% endif %}
+                    </td>
                     <td class="col-3"></td>
                 </tr>
                 {% endfor %}

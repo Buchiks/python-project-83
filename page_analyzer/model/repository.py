@@ -12,7 +12,7 @@ class UrlRepository:
     
     def get_content(self):
         with self.conn.cursor(cursor_factory=DictCursor) as cur:
-            cur.execute("SELECT * FROM urls")
+            cur.execute("SELECT MAX(ch.created_at) as last_date, urls.name, urls.id FROM urls LEFT JOIN url_checks as ch ON ch.url_id = urls.id GROUP BY urls.id, urls.name ORDER BY id")
             return [dict(row) for row in cur]
     
     def find(self, id):
