@@ -1,4 +1,5 @@
 import psycopg2
+import requests
 from psycopg2.extras import DictCursor
 
 
@@ -52,7 +53,10 @@ class UrlRepository:
             return [dict(row) for row in cur]
     
     def check(self, url):
+        response = requests.get(url["name"])
+        response.raise_for_status()
+        status_code = response.status_code
         with self.conn.cursor() as cur:
-            cur.execute("INSERT INTO url_checks (url_id) VALUES (%s)", 
-                        (str(url["id"])))
+            cur.execute('''INSERT INTO url_checks (url_id, status_code)
+                        VALUES (%s, %s)''', (str(url["id"]), str(status_code),))
         self.conn.commit()

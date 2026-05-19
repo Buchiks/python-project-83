@@ -6,11 +6,13 @@ from flask import (
     Flask,
     abort,
     flash,
+    get_flashed_messages,
     redirect,
     render_template,
     request,
     url_for,
 )
+from requests import HTTPError
 from validators import url as validate
 
 from .model import UrlRepository
@@ -48,7 +50,7 @@ def add_site():
     if not no_errors:
         return render_template("index.html", url=url, errors=no_errors)
     repo.save(url)
-    flash("Url was added succesfully", "success")
+    flash("Url was added succesfully", "alert-success")
     return redirect(url_for("url_show", id=url["id"]))
 
 
@@ -58,12 +60,17 @@ def url_show(id):
     if not url:
         abort(404)
     checks = repo.get_check_content(url)
-    return render_template("show_id.html", url=url, checks=checks)
+    message = get_flashed_messages(with_categories=True)
+    return render_template("show_id.html", url=url, 
+                           checks=checks, message=message)
 
 
 @app.post("/urls/<int:id>/checks")
 def url_check(id):
     url = repo.find(id)
-    repo.check(url)
+    try:
+        repo.check(url)
+    except HTTPError:
+        flash("Произошла ошибка при проверке", "alert-danger")
     return redirect(url_for("url_show", id=url["id"]))
     
