@@ -49,8 +49,12 @@ def add_site():
 
     if not no_errors:
         return render_template("index.html", url=url, errors=no_errors)
-    repo.save(url)
-    flash("Url was added succesfully", "alert-success")
+    
+    if repo.does_exist(url):
+        flash("Url has been already added", "alert-success")
+    else:
+        repo.save(url)
+        flash("Url was added succesfully", "alert-success")
     return redirect(url_for("url_show", id=url["id"]))
 
 
@@ -68,6 +72,8 @@ def url_show(id):
 @app.post("/urls/<int:id>/checks")
 def url_check(id):
     url = repo.find(id)
+    if not url:
+        abort(404)
     try:
         repo.check(url)
     except HTTPError:

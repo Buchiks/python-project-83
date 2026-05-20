@@ -25,20 +25,19 @@ class UrlRepository:
             row = cur.fetchone()
             return dict(row) if row else None
     
-    def get_by_term(self, search_term=""):
+    def does_exist(self, url):
         with self.conn.cursor(cursor_factory=DictCursor) as cur:
-            cur.execute("SELECT * FROM urls "
-            "WHERE url ILIKE %s", (f"%{search_term}%",))
-            return cur.fetchall()
+            cur.execute("SELECT id FROM urls WHERE name = %s",
+                         (url["name"],))
+            id = cur.fetchone()
+            if id:
+                url["id"] = id["id"]
+                return True
+            else:
+                return False
+                
     
     def save(self, url):
-        if "id" in url and url["id"]:
-            return url["id"]
-        else:
-            self._create(url)
-    
-    def _create(self, url):
-        
         with self.conn.cursor() as cur:
             cur.execute("INSERT INTO urls (name) VALUES (%s) RETURNING id",
                          (url["name"],))
