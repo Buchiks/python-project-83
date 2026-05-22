@@ -70,9 +70,21 @@
                 <tr>
                     <td class="col-1">{{ check.id }}</td>
                     <td class="col-3">{{ check.status_code }}</td>
-                    <td class="col-1"></td>
-                    <td class="col-1"></td>
-                    <td class="col-3"></td>
+                    <td class="col-1">
+                        {% if check.h1 %}
+                        {{ check.h1|truncate(200, killwords=True, end="...") }}
+                        {% endif %}
+                    </td>
+                    <td class="col-1">
+                        {% if check.title %}
+                        {{ check.title|truncate(200, killwords=True, end="...") }}
+                        {% endif %}
+                    </td>
+                    <td class="col-3">
+                        {% if check.description %}
+                        {{ check.description|truncate(200, killwords=True, end="...") }}
+                        {% endif %}
+                    </td>
                     <td class="col-3">{{ check.created_at }}</td>
                 </tr>
                 {% endfor %}
