@@ -32,8 +32,8 @@
                 <tr>
                     <th class="col-1 fw-semibold">ID</th>
                     <th class="col-4 fw-semibold">Имя</th>
-                    <th class="col-4 fw-semibold">Последняя проверка</th>
-                    <th class="col-3 fw-semibold">Код ответа</th>
+                    <th class="col-3 fw-semibold">Последняя проверка</th>
+                    <th class="col-2 fw-semibold">Код ответа</th>
                 </tr>
             </thead>
             <tbody>
@@ -42,13 +42,13 @@
                     <td class="col-1">{{ url.id }}</td>
                     <td class="col-4"><a href="{{ url_for('url_show', id=url.id) }}">{{ url.name }}</a></td>
 
-                    <td class="col-4">
+                    <td class="col-3">
                         {% if url.last_date %}
                         {{ url.last_date }}
                         {% endif %}
                     </td>
                     {% if url.status_code %}
-                    <td class="col-3">{{ url.status_code }}</td>
+                    <td class="col-2">{{ url.status_code }}</td>
                     {% endif %}
                 </tr>
                 {% endfor %}
