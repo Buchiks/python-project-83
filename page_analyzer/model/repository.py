@@ -57,5 +57,5 @@ class UrlRepository:
         status_code = response.status_code
         with self.conn.cursor() as cur:
             cur.execute('''INSERT INTO url_checks (url_id, status_code)
-                        VALUES (%s, %s)''', (str(url["id"]), str(status_code),))
+                        VALUES (%s, %s)''', (url["id"], status_code,))
         self.conn.commit()
