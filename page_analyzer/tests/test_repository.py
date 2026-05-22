@@ -1,7 +1,14 @@
 import pytest
 import requests
 from datetime import date
+from pathlib import Path
 
+
+def get_test_data_path(filename):
+    return Path(__file__).parent / "test_data" / filename
+
+def read_file(filename):
+    return get_test_data_path(filename).read_text()
 
 def test_save(repo):
     url = {"name": "https://www.example.com"}
@@ -65,18 +72,23 @@ def test_check_200(repo, mocker):
     mock_response = mocker.Mock()
     mock_response.status_code = 200
     mock_response.raise_for_status = mocker.Mock()
+    mock_response.text = read_file("html_check_test.html")
     mocker.patch('requests.get', return_value=mock_response)
-
+    
     repo.check(url)
-
+    
     with repo.conn.cursor() as cur:
         cur.execute(
-            "SELECT status_code FROM url_checks WHERE url_id = %s",
+            "SELECT status_code, h1, title, description FROM url_checks WHERE url_id = %s",
             (url["id"],)
         )
-        result = cur.fetchone()
+        result = cur.fetchone() 
         assert result is not None
+        assert len(result) == 4
         assert result[0] == 200
+        assert result[1] == "Test"
+        assert result[2] == "Document"
+        assert result[3] == "valuable text"
     
 def test_check_400(repo, mocker):
     url = {"name": "https://www.test7.com"}
@@ -105,12 +117,15 @@ def get_check_content_exist(repo):
     with repo.conn.cursor() as cur:
         for i in range(3):
             cur.execute(
-                "INSERT INTO url_checks (url_id, status_code) VALUES(%s, %s)", (url["id"], 200,)
+                "INSERT INTO url_checks (url_id, status_code, h1, title, description) VALUES(%s, %s, %s, %s, %s)", (url["id"], 200, "BIG", "TITLE", "something....something")
             )
 
     result = repo.get_check_content(url)
     assert len(result) == 3
     for item in result:
+        assert item["h1"] == "BIG"
+        assert item["title"] == "TITLE"
+        assert item["description"] == "something....something"
         assert item["url_id"] == url["id"]
         assert item["status_code"] == 200
 
