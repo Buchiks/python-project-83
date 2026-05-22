@@ -9,7 +9,7 @@ CREATE TABLE url_checks (
     url_id bigint REFERENCES urls (id),
     status_code INTEGER,
     h1 TEXT,
-    title VARCHAR(255),
+    title TEXT,
     description TEXT,
     created_at DATE DEFAULT CURRENT_DATE
     );
