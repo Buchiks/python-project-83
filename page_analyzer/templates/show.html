@@ -47,7 +47,9 @@
                         {{ url.last_date }}
                         {% endif %}
                     </td>
-                    <td class="col-3"></td>
+                    {% if url.status_code %}
+                    <td class="col-3">{{ url.status_code }}</td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>

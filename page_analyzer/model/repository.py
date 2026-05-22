@@ -13,9 +13,9 @@ class UrlRepository:
     
     def get_content(self):
         with self.conn.cursor(cursor_factory=DictCursor) as cur:
-            sql = "SELECT MAX(ch.created_at) as last_date, urls.name, urls.id" \
+            sql = "SELECT DISTINCT ON (urls.id) ch.created_at as last_date, ch.status_code, urls.name, urls.id" \
             " FROM urls LEFT JOIN url_checks as ch " \
-            "ON ch.url_id = urls.id GROUP BY urls.id, urls.name ORDER BY id"
+            "ON ch.url_id = urls.id ORDER BY urls.id, ch.created_at DESC"
             cur.execute(sql)
             return [dict(row) for row in cur]
     
