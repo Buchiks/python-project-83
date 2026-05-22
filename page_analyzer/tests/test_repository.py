@@ -139,5 +139,6 @@ def test_get_content_with_checks(repo):
         assert item["id"] == ids[i]
         assert item["name"] == urls[i]["name"]
         assert item["last_date"] == date(2025, 10, 11)
+        assert item["status_code"] == 200
     id_from_result = [item["id"] for item in urls_result]
     assert id_from_result == sorted(id_from_result)
