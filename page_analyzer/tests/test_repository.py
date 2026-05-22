@@ -1,20 +1,24 @@
-import pytest
-import requests
 from datetime import date
 from pathlib import Path
+
+import pytest
+import requests
 
 
 def get_test_data_path(filename):
     return Path(__file__).parent / "test_data" / filename
 
+
 def read_file(filename):
     return get_test_data_path(filename).read_text()
+
 
 def test_save(repo):
     url = {"name": "https://www.example.com"}
     repo.save(url)
     assert "id" in url
     assert url["name"] == "https://www.example.com"
+
 
 def test_find_exist(repo):
     url = {"name": "https://www.test.com"}
@@ -25,10 +29,12 @@ def test_find_exist(repo):
     assert found["id"] == id
     assert found["name"] == "https://www.test.com"
 
+
 def test_find_None(repo):
     id = -1
     url = repo.find(id)
-    assert url == None
+    assert url is None
+
 
 def test_get_content_no_checks(repo):
     urls = [{"name": "https://www.test1.com"},
@@ -48,6 +54,7 @@ def test_get_content_no_checks(repo):
     id_from_result = [item["id"] for item in urls_result]
     assert id_from_result == sorted(id_from_result)
 
+
 def test_does_exist_true(repo):
     url = {"name": "https://www.test4.com"}
     repo.save(url)
@@ -57,6 +64,7 @@ def test_does_exist_true(repo):
     assert url["name"] == "https://www.test4.com"
     assert url["id"] == id
 
+
 def test_does_exist_false(repo):
     url = {"name": "https://www.test5.com"}
     repo.save(url)
@@ -64,6 +72,7 @@ def test_does_exist_false(repo):
     result = repo.does_exist(wrong)
     assert result is False
     assert "id" not in wrong
+
 
 def test_check_200(repo, mocker):
     url = {"name": "https://www.test6.com"}
@@ -79,7 +88,8 @@ def test_check_200(repo, mocker):
     
     with repo.conn.cursor() as cur:
         cur.execute(
-            "SELECT status_code, h1, title, description FROM url_checks WHERE url_id = %s",
+            """SELECT status_code, h1, title, description FROM url_checks 
+            WHERE url_id = %s""",
             (url["id"],)
         )
         result = cur.fetchone() 
@@ -89,7 +99,8 @@ def test_check_200(repo, mocker):
         assert result[1] == "Test"
         assert result[2] == "Document"
         assert result[3] == "valuable text"
-    
+
+
 def test_check_400(repo, mocker):
     url = {"name": "https://www.test7.com"}
     repo.save(url)
@@ -97,7 +108,8 @@ def test_check_400(repo, mocker):
     mock_response = mocker.Mock()
     mock_response.status_code = 400
     mock_response.raise_for_status = mocker.Mock()
-    mock_response.raise_for_status.side_effect = requests.HTTPError("404 Not Found")
+    http_error = requests.HTTPError("404 Not Found")
+    mock_response.raise_for_status.side_effect = http_error
     mocker.patch('requests.get', return_value=mock_response)
 
     with pytest.raises(requests.HTTPError):
@@ -111,13 +123,17 @@ def test_check_400(repo, mocker):
         count = cur.fetchone()[0]
         assert count == 0
 
+
 def get_check_content_exist(repo):
     url = {"name": "https://www.test8.com"}
     repo.save(url)
     with repo.conn.cursor() as cur:
         for i in range(3):
             cur.execute(
-                "INSERT INTO url_checks (url_id, status_code, h1, title, description) VALUES(%s, %s, %s, %s, %s)", (url["id"], 200, "BIG", "TITLE", "something....something")
+                """INSERT INTO url_checks 
+                (url_id, status_code, h1, title, description) 
+                VALUES(%s, %s, %s, %s, %s)""",
+                (url["id"], 200, "BIG", "TITLE", "something....something")
             )
 
     result = repo.get_check_content(url)
@@ -128,6 +144,7 @@ def get_check_content_exist(repo):
         assert item["description"] == "something....something"
         assert item["url_id"] == url["id"]
         assert item["status_code"] == 200
+
 
 def test_get_content_with_checks(repo):
     urls = [{"name": "https://www.test1.com"},
@@ -142,10 +159,12 @@ def test_get_content_with_checks(repo):
     with repo.conn.cursor() as cur:
         for i in range(3):
             cur.execute(
-                "INSERT INTO url_checks (url_id, status_code, created_at) VALUES(%s, %s, %s)", (ids[i], 200, "2025-10-11")
+                """INSERT INTO url_checks (url_id, status_code, created_at) 
+                VALUES(%s, %s, %s)""", (ids[i], 200, "2025-10-11")
             )
             cur.execute(
-                "INSERT INTO url_checks (url_id, status_code, created_at) VALUES(%s, %s, %s)", (ids[i], 200, "2021-10-11")
+                """INSERT INTO url_checks (url_id, status_code, created_at) 
+                VALUES(%s, %s, %s)""", (ids[i], 200, "2021-10-11")
             )
             
     urls_result = repo.get_content()

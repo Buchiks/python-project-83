@@ -1,7 +1,7 @@
 import psycopg2
 import requests
-from psycopg2.extras import DictCursor
 from bs4 import BeautifulSoup
+from psycopg2.extras import DictCursor
 
 
 def get_db(app):
@@ -14,7 +14,8 @@ class UrlRepository:
     
     def get_content(self):
         with self.conn.cursor(cursor_factory=DictCursor) as cur:
-            sql = "SELECT DISTINCT ON (urls.id) ch.created_at as last_date, ch.status_code, urls.name, urls.id" \
+            sql = "SELECT DISTINCT ON (urls.id) " \
+            "ch.created_at as last_date, ch.status_code, urls.name, urls.id" \
             " FROM urls LEFT JOIN url_checks as ch " \
             "ON ch.url_id = urls.id ORDER BY urls.id, ch.created_at DESC"
             cur.execute(sql)
@@ -37,7 +38,6 @@ class UrlRepository:
             else:
                 return False
                 
-    
     def save(self, url):
         with self.conn.cursor() as cur:
             cur.execute("INSERT INTO urls (name) VALUES (%s) RETURNING id",
@@ -65,6 +65,9 @@ class UrlRepository:
         else:
             description = None
         with self.conn.cursor() as cur:
-            cur.execute('''INSERT INTO url_checks (url_id, status_code, h1, title, description)
-                        VALUES (%s, %s, %s, %s, %s)''', (url["id"], status_code, h1, title, description))
+            cur.execute('''INSERT INTO url_checks (url_id, status_code, 
+                        h1, title, description)
+                        VALUES (%s, %s, %s, %s, %s)''', 
+                        (url["id"], status_code, h1, title, description)
+                        )
         self.conn.commit()

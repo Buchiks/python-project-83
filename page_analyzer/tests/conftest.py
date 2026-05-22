@@ -1,21 +1,24 @@
-import pytest
-from flask import Flask
-from dotenv import load_dotenv
 import os
+
 import psycopg2
+import pytest
+from dotenv import load_dotenv
+from flask import Flask
+
 from page_analyzer.model import UrlRepository
 
 load_dotenv()
 
+
 @pytest.fixture(scope="session")
 def app():
-
 
     app = Flask(__name__)
 
     app.config["SECRET_KEY"] = "test_key"
     app.config["TESTING"] = True
     return app
+
 
 @pytest.fixture
 def connection(app):
@@ -32,6 +35,7 @@ def connection(app):
     finally:
         conn.rollback()
         conn.close()
+
 
 @pytest.fixture
 def repo(connection):
