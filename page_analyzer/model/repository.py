@@ -1,6 +1,7 @@
 import psycopg2
 import requests
 from psycopg2.extras import DictCursor
+from bs4 import BeautifulSoup
 
 
 def get_db(app):
@@ -55,7 +56,15 @@ class UrlRepository:
         response = requests.get(url["name"])
         response.raise_for_status()
         status_code = response.status_code
+        html = BeautifulSoup(response.text, "html.parser")
+        h1 = html.h1.string if html.h1 else None
+        title = html.title.string if html.title else None
+        meta = html.find("meta", {"name": "description"})
+        if meta and "content" in meta.attrs:
+            description = meta["content"]
+        else:
+            description = None
         with self.conn.cursor() as cur:
-            cur.execute('''INSERT INTO url_checks (url_id, status_code)
-                        VALUES (%s, %s)''', (url["id"], status_code,))
+            cur.execute('''INSERT INTO url_checks (url_id, status_code, h1, title, description)
+                        VALUES (%s, %s, %s, %s, %s)''', (url["id"], status_code, h1, title, description))
         self.conn.commit()
