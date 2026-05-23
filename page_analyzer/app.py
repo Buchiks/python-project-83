@@ -53,7 +53,9 @@ def add_site():
     if not no_errors:
         message = "Некорректный URL"
         return render_template("index.html", url=url, errors=message)
-    
+
+    repo.normalize(url)
+
     if repo.does_exist(url):
         flash("Страница уже существует", "alert-info")
     else:

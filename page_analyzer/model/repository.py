@@ -1,3 +1,5 @@
+from urllib.parse import urlparse, urlunparse
+
 import psycopg2
 import requests
 from bs4 import BeautifulSoup
@@ -71,3 +73,10 @@ class UrlRepository:
                         (url["id"], status_code, h1, title, description)
                         )
         self.conn.commit()
+
+    def normalize(self, url):
+        parsed = urlparse(url["name"])
+        scheme = parsed.scheme.lower()
+        netloc = parsed.netloc.lower()
+        url["name"] = urlunparse((scheme, netloc, '', '', '', ''))
+        return 
