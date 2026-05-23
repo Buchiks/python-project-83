@@ -34,7 +34,7 @@
     {% endif %}
     <div class="p-3 ms-5">
         <h1 class="">Сайт: {{ url.name }}</h1>
-        <table class="table table-bordered table-striped w-75">
+        <table class="table table-bordered table-striped w-75" data-test="url">
             <tr>
                 <td class="col-6">ID</td>
                 <td class="col-6">{{ url.id }}</td>
@@ -54,7 +54,7 @@
         <form action="{{ url_for('url_check', id=url.id) }}" method="post" class="d-flex gap-2">
             <button type="submit" class="btn btn-primary mb-3">Запустить проверку</button>
         </form>
-        <table class="table table-bordered w-75 ">
+        <table class="table table-bordered w-75" data-test="checks">
             <thead>
                 <tr>
                     <td class="col-1">ID</td>
