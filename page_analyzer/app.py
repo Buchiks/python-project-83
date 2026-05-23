@@ -52,7 +52,7 @@ def add_site():
 
     if not no_errors:
         message = "Некорректный URL"
-        return render_template("index.html", url=url, errors=message)
+        return render_template("index.html", url=url, errors=message), 422
 
     repo.normalize(url)
 
