@@ -33,7 +33,8 @@ repo = UrlRepository(conn)
 
 @app.route("/")
 def index():
-    return render_template("index.html", url="", errors="1")
+    
+    return render_template("index.html", url="", errors="")
 
 
 @app.route("/urls")
@@ -48,13 +49,14 @@ def add_site():
     no_errors = validate(url["name"])
 
     if not no_errors:
-        return render_template("index.html", url=url, errors=no_errors)
+        message = "Некорректный URL"
+        return render_template("index.html", url=url, errors=message)
     
     if repo.does_exist(url):
-        flash("Url has been already added", "alert-success")
+        flash("Страница уже существует", "alert-info")
     else:
         repo.save(url)
-        flash("Url was added succesfully", "alert-success")
+        flash("Страница успешно добавлена", "alert-success")
     return redirect(url_for("url_show", id=url["id"]))
 
 
@@ -78,5 +80,6 @@ def url_check(id):
         repo.check(url)
     except HTTPError:
         flash("Произошла ошибка при проверке", "alert-danger")
+    flash("Страница успешно проверена", "alert-success")
     return redirect(url_for("url_show", id=url["id"]))
     
