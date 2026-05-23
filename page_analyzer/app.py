@@ -45,7 +45,9 @@ def show():
 
 @app.post("/urls")
 def add_site():
-    url = request.form.to_dict("url")
+    data = request.form.to_dict()
+    url = {}
+    url["name"] = data["url"]
     no_errors = validate(url["name"])
 
     if not no_errors:
