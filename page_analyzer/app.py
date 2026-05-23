@@ -12,7 +12,7 @@ from flask import (
     request,
     url_for,
 )
-from requests import HTTPError
+from requests import RequestException
 from validators import url as validate
 
 from .model import UrlRepository
@@ -78,8 +78,8 @@ def url_check(id):
         abort(404)
     try:
         repo.check(url)
-    except HTTPError:
+        flash("Страница успешно проверена", "alert-success")
+    except RequestException:
         flash("Произошла ошибка при проверке", "alert-danger")
-    flash("Страница успешно проверена", "alert-success")
     return redirect(url_for("url_show", id=url["id"]))
     
