@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 from flask import Flask
+from sqlalchemy.orm import close_all_sessions
 
 from page_analyzer.model import UrlRepository
 
@@ -41,7 +42,7 @@ def repo(app):
     
     yield repo
 
-    db.SessionLocal().close_all()
+    close_all_sessions()
     test_db_path.unlink(missing_ok=True)
     shutil.rmtree(temp_dir, ignore_errors=True)
     

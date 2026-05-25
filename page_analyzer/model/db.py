@@ -2,8 +2,7 @@ import os
 from datetime import date
 
 from sqlalchemy import Column, Date, Integer, String, create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 DATABASE_URL = os.getenv("SQLite_DATABASE_URL", "sqlite:///myproject.db")
 
