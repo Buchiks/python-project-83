@@ -1,8 +1,10 @@
 from urllib.parse import urlparse, urlunparse
-from .db import get_db, Urls, UrlCheck
-from sqlalchemy import desc
+
 import requests
 from bs4 import BeautifulSoup
+from sqlalchemy import desc
+
+from .db import UrlCheck, Urls, get_db
 
 
 class UrlRepository:
@@ -13,14 +15,14 @@ class UrlRepository:
             urls = db.query(Urls).order_by(Urls.id).all()
             result = []
             for url in urls:
-                last_check = db.query(UrlCheck).filter(
+                last_ch = db.query(UrlCheck).filter(
                     UrlCheck.url_id == url.id
                 ).order_by(desc(UrlCheck.created_at)).first()
                 result.append({
                     "id": url.id,
                     "name": url.name,
-                    "last_date": last_check.created_at if last_check else None,
-                    "status_code": last_check.status_code if last_check else None
+                    "last_date": last_ch.created_at if last_ch else None,
+                    "status_code": last_ch.status_code if last_ch else None
                 })
             return result
         finally:
@@ -58,7 +60,6 @@ class UrlRepository:
         finally:
             db.close()
         
-
     def get_check_content(self, url):
         db = get_db()
         try:

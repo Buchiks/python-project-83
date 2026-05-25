@@ -1,9 +1,9 @@
-from sqlalchemy import create_engine, Column, Integer, String, Date, Text
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
 import os
 from datetime import date
 
+from sqlalchemy import Column, Date, Integer, String, create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker
 
 DATABASE_URL = os.getenv("SQLite_DATABASE_URL", "sqlite:///myproject.db")
 
@@ -13,12 +13,14 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
 
+
 class Urls(Base):
     __tablename__ = "urls"
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     created_at = Column(Date, default=date.today)
+
 
 class UrlCheck(Base):
     __tablename__ = "url_checks"
@@ -31,7 +33,9 @@ class UrlCheck(Base):
     description = Column(String)
     created_at = Column(Date, default=date.today)
 
+
 Base.metadata.create_all(bind=engine)
+
 
 def get_db():
     return SessionLocal()

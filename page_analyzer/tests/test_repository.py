@@ -1,9 +1,9 @@
 from datetime import date
 from pathlib import Path
-from freezegun import freeze_time
 
 import pytest
 import requests
+from freezegun import freeze_time
 
 
 def get_test_data_path(filename):
@@ -13,6 +13,7 @@ def get_test_data_path(filename):
 def read_file(filename):
     return get_test_data_path(filename).read_text()
 
+
 @pytest.fixture
 def mock_success_req(mocker):
     mock_response = mocker.Mock()
@@ -21,6 +22,7 @@ def mock_success_req(mocker):
     mock_response.text = read_file("html_check_test.html")
     mocker.patch('requests.get', return_value=mock_response)
     return mock_response
+
 
 @pytest.fixture
 def mock_fail_req(mocker):

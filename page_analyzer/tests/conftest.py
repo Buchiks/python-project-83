@@ -1,20 +1,17 @@
 import os
-import pytest
 import shutil
 import tempfile
-from dotenv import load_dotenv
-from flask import Flask
 from pathlib import Path
 
-from page_analyzer.model import UrlRepository
-from page_analyzer.model.db import Urls, UrlCheck
+import pytest
+from flask import Flask
 
+from page_analyzer.model import UrlRepository
 
 
 @pytest.fixture(scope="session")
 def app():
 
-    
     app = Flask(__name__)
 
     app.config["SECRET_KEY"] = "test_key"
@@ -32,8 +29,10 @@ def repo(app):
     
     os.environ["SQLite_DATABASE_URL"] = f"sqlite:///{test_db_path}"
     
-    from page_analyzer.model import db
     import importlib
+
+    from page_analyzer.model import db
+    
     importlib.reload(db)
     
     db.Base.metadata.create_all(bind=db.engine)
