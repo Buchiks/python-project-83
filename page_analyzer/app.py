@@ -1,6 +1,5 @@
 import os
 
-import psycopg2
 from dotenv import load_dotenv
 from flask import (
     Flask,
@@ -26,25 +25,24 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
 DATABASE_URL = os.getenv('DATABASE_URL')
-conn = psycopg2.connect(DATABASE_URL)
 
-repo = UrlRepository(conn)
 
 
 @app.route("/")
 def index():
-    
     return render_template("index.html", url="", errors="")
 
 
 @app.route("/urls")
 def show():
+    repo = UrlRepository()
     urls = repo.get_content()
     return render_template("show.html", urls=urls)
 
 
 @app.post("/urls")
 def add_site():
+    repo = UrlRepository()
     data = request.form.to_dict()
     url = {}
     url["name"] = data["url"]
@@ -66,6 +64,7 @@ def add_site():
 
 @app.route("/urls/<int:id>")
 def url_show(id):
+    repo = UrlRepository()
     url = repo.find(id)
     if not url:
         abort(404)
@@ -77,6 +76,7 @@ def url_show(id):
 
 @app.post("/urls/<int:id>/checks")
 def url_check(id):
+    repo = UrlRepository()
     url = repo.find(id)
     if not url:
         abort(404)

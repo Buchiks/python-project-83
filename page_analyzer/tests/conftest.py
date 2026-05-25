@@ -1,18 +1,20 @@
 import os
-
-import psycopg2
 import pytest
+import shutil
+import tempfile
 from dotenv import load_dotenv
 from flask import Flask
+from pathlib import Path
 
 from page_analyzer.model import UrlRepository
+from page_analyzer.model.db import Urls, UrlCheck
 
-load_dotenv()
 
 
 @pytest.fixture(scope="session")
 def app():
 
+    
     app = Flask(__name__)
 
     app.config["SECRET_KEY"] = "test_key"
@@ -21,22 +23,35 @@ def app():
 
 
 @pytest.fixture
-def connection(app):
-    TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
-    conn = psycopg2.connect(TEST_DATABASE_URL)
-    conn.autocommit = False
-    try:
-        with conn.cursor() as cur:
-            cur.execute("TRUNCATE urls, url_checks RESTART IDENTITY CASCADE")
-            cur.execute("BEGIN")
+def repo(app):
+
+    temp_dir = tempfile.mkdtemp()
+    test_db_path = Path(temp_dir) / "test.db"
     
-        yield conn
+    original_db_url = os.getenv("SQLite_DATABASE_URL")
+    
+    os.environ["SQLite_DATABASE_URL"] = f"sqlite:///{test_db_path}"
+    
+    from page_analyzer.model import db
+    import importlib
+    importlib.reload(db)
+    
+    db.Base.metadata.create_all(bind=db.engine)
+    
+    repo = UrlRepository()
+    
+    yield repo
 
-    finally:
-        conn.rollback()
-        conn.close()
+    db.SessionLocal().close_all()
+    test_db_path.unlink(missing_ok=True)
+    shutil.rmtree(temp_dir, ignore_errors=True)
+    
+    if original_db_url:
+        os.environ["SQLite_DATABASE_URL"] = original_db_url
+    else:
+        os.environ.pop("SQLite_DATABASE_URL", None)
+    
+    importlib.reload(db)
 
 
-@pytest.fixture
-def repo(connection):
-    return UrlRepository(connection)
+

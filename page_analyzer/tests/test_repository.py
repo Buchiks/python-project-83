@@ -1,5 +1,6 @@
 from datetime import date
 from pathlib import Path
+from freezegun import freeze_time
 
 import pytest
 import requests
@@ -12,7 +13,33 @@ def get_test_data_path(filename):
 def read_file(filename):
     return get_test_data_path(filename).read_text()
 
+@pytest.fixture
+def mock_success_req(mocker):
+    mock_response = mocker.Mock()
+    mock_response.status_code = 200
+    mock_response.raise_for_status = mocker.Mock()
+    mock_response.text = read_file("html_check_test.html")
+    mocker.patch('requests.get', return_value=mock_response)
+    return mock_response
 
+@pytest.fixture
+def mock_fail_req(mocker):
+    mock_response = mocker.Mock()
+    mock_response.status_code = 400
+    mock_response.raise_for_status = mocker.Mock()
+    http_error = requests.HTTPError("404 Not Found")
+    mock_response.raise_for_status.side_effect = http_error
+    mocker.patch('requests.get', return_value=mock_response)
+    return mock_response
+
+
+@pytest.fixture
+def mock_date():
+    def _mock(fake_date):
+        return freeze_time(fake_date.isoformat())
+    return _mock
+    
+    
 def test_save(repo):
     url = {"name": "https://www.example.com"}
     repo.save(url)
@@ -45,6 +72,7 @@ def test_get_content_no_checks(repo):
     for url in urls:
         repo.save(url)
         ids.append(url["id"])
+
     urls_result = repo.get_content()
     assert len(urls_result) == 3
     for i, item in enumerate(urls_result):
@@ -74,79 +102,48 @@ def test_does_exist_false(repo):
     assert "id" not in wrong
 
 
-def test_check_200(repo, mocker):
+def test_check_200(repo, mock_success_req):
     url = {"name": "https://www.test6.com"}
     repo.save(url)
 
-    mock_response = mocker.Mock()
-    mock_response.status_code = 200
-    mock_response.raise_for_status = mocker.Mock()
-    mock_response.text = read_file("html_check_test.html")
-    mocker.patch('requests.get', return_value=mock_response)
-    
     repo.check(url)
     
-    with repo.conn.cursor() as cur:
-        cur.execute(
-            """SELECT status_code, h1, title, description FROM url_checks 
-            WHERE url_id = %s""",
-            (url["id"],)
-        )
-        result = cur.fetchone() 
-        assert result is not None
-        assert len(result) == 4
-        assert result[0] == 200
-        assert result[1] == "Test"
-        assert result[2] == "Document"
-        assert result[3] == "valuable text"
+    checks = repo.get_check_content(url)
+    assert len(checks) == 1
+    assert checks[0]["status_code"] == 200
+    assert checks[0]["h1"] == "Test"
+    assert checks[0]["title"] == "Document"
+    assert checks[0]["description"] == "valuable text"
 
 
-def test_check_400(repo, mocker):
+def test_check_400(repo, mock_fail_req):
     url = {"name": "https://www.test7.com"}
     repo.save(url)
-
-    mock_response = mocker.Mock()
-    mock_response.status_code = 400
-    mock_response.raise_for_status = mocker.Mock()
-    http_error = requests.HTTPError("404 Not Found")
-    mock_response.raise_for_status.side_effect = http_error
-    mocker.patch('requests.get', return_value=mock_response)
 
     with pytest.raises(requests.HTTPError):
         repo.check(url)
     
-    with repo.conn.cursor() as cur:
-        cur.execute(
-            "SELECT COUNT(*) FROM url_checks WHERE url_id = %s",
-            (url["id"],)
-        )
-        count = cur.fetchone()[0]
-        assert count == 0
+    checks = repo.get_check_content(url)
+    assert len(checks) == 0
 
 
-def get_check_content_exist(repo):
+def test_get_check_content_exist(repo, mock_success_req):
     url = {"name": "https://www.test8.com"}
     repo.save(url)
-    with repo.conn.cursor() as cur:
-        for i in range(3):
-            cur.execute(
-                """INSERT INTO url_checks 
-                (url_id, status_code, h1, title, description) 
-                VALUES(%s, %s, %s, %s, %s)""",
-                (url["id"], 200, "BIG", "TITLE", "something....something")
-            )
+    for i in range(3):
+        repo.check(url)
 
     result = repo.get_check_content(url)
     assert len(result) == 3
     for item in result:
-        assert item["h1"] == "BIG"
-        assert item["title"] == "TITLE"
-        assert item["description"] == "something....something"
+        assert item["h1"] == "Test"
+        assert item["title"] == "Document"
+        assert item["description"] == "valuable text"
         assert item["url_id"] == url["id"]
         assert item["status_code"] == 200
 
 
-def test_get_content_with_checks(repo):
+def test_get_content_with_checks(repo, mock_success_req, mock_date):
     urls = [{"name": "https://www.test1.com"},
             {"name": "https://www.test2.com"}, 
             {"name": "https://www.test3.com"}
@@ -156,17 +153,13 @@ def test_get_content_with_checks(repo):
     for url in urls:
         repo.save(url)
         ids.append(url["id"])
-    with repo.conn.cursor() as cur:
-        for i in range(3):
-            cur.execute(
-                """INSERT INTO url_checks (url_id, status_code, created_at) 
-                VALUES(%s, %s, %s)""", (ids[i], 200, "2025-10-11")
-            )
-            cur.execute(
-                """INSERT INTO url_checks (url_id, status_code, created_at) 
-                VALUES(%s, %s, %s)""", (ids[i], 200, "2021-10-11")
-            )
-            
+
+    for url in urls:
+        with mock_date(date(2025, 10, 11)):
+            repo.check(url)
+        
+        with mock_date(date(2021, 10, 11)):
+            repo.check(url)
     urls_result = repo.get_content()
     assert len(urls_result) == 3
     for i, item in enumerate(urls_result):
