@@ -4,4 +4,4 @@
 [![Python CI](https://github.com/Buchiks/python-project-83/actions/workflows/github-actions.yaml/badge.svg)](https://github.com/Buchiks/python-project-83/actions/workflows/github-actions.yaml)
 
 SQlite версия сайта:
-Buchik.pythonanywhere.com
+[Buchik.pythonanywhere.com](https://buchik.pythonanywhere.com/)
