@@ -33,7 +33,11 @@ class UrlRepository:
         try:
             url = db.query(Urls).filter(Urls.id == id).first()
             if url:
-                return {"id": url.id, "name": url.name, "created_at": url.created_at}
+                return {
+                    "id": url.id, 
+                    "name": url.name, 
+                    "created_at": url.created_at
+                    }
             return None
         finally:
             db.close()
