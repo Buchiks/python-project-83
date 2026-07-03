@@ -20,20 +20,21 @@ render-start:
 test:
 	uv run pytest
 
-ifneq (,$(wildcard .env))
-	include .env
-	export
-endif
-
 .PHONY: db-init
 db-init:
 	@echo "Инициализация базы данных..."
-	@if [ -z "$(DATABASE_URL)" ]; then \
+	@# Загружаем .env через оболочку
+	@eval $$(cat .env | sed 's/^/export /') && \
+	if [ -z "$$DATABASE_URL" ]; then \
 		echo "Ошибка: DATABASE_URL не задан в .env файле"; \
 		exit 1; \
 	fi
-	@PGPASSWORD=$(shell echo $(DATABASE_URL) | sed -n 's/.*:\/\/.*:\(.*\)@.*/\1/p') \
-	psql "$(DATABASE_URL)" -c "CREATE DATABASE $(shell echo $(DATABASE_URL) | sed -n 's/.*\/\(.*\)$$/\1/p')" 2>/dev/null || true
-	@PGPASSWORD=$(shell echo $(DATABASE_URL) | sed -n 's/.*:\/\/.*:\(.*\)@.*/\1/p') \
-	psql "$(DATABASE_URL)" -f database.sql
+	@# Создаём базу данных (если её нет)
+	@eval $$(cat .env | sed 's/^/export /') && \
+	PGPASSWORD=$$(echo $$DATABASE_URL | sed -n 's/.*:\/\/.*:\(.*\)@.*/\1/p') \
+	psql "$$DATABASE_URL" -c "CREATE DATABASE $$(echo $$DATABASE_URL | sed -n 's/.*\/\(.*\)$$/\1/p')" 2>/dev/null || true
+	@# Выполняем SQL-скрипт
+	@eval $$(cat .env | sed 's/^/export /') && \
+	PGPASSWORD=$$(echo $$DATABASE_URL | sed -n 's/.*:\/\/.*:\(.*\)@.*/\1/p') \
+	psql "$$DATABASE_URL" -f database.sql
 	@echo "✅ База данных и таблицы созданы!"
