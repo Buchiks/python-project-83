@@ -33,9 +33,10 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 make install
 ```
 ### Создайте .env файл и настройте структуру, как показано в примере :
-
+```bash
 SECRET_KEY=ваш_секретный_ключ
 DATABASE_URL=postgresql://пользователь:пароль@localhost:5432/имя_базы
+```
 
 ### Запустите приложение на локальном сервере::
 ```bash
