@@ -37,6 +37,10 @@ make install
 SECRET_KEY=ваш_секретный_ключ
 DATABASE_URL=postgresql://пользователь:пароль@localhost:5432/имя_базы
 ```
+### Создайте таблицы:
+```bash
+make db-init
+```
 
 ### Запустите приложение на локальном сервере::
 ```bash
